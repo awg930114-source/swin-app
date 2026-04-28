@@ -225,6 +225,7 @@
       font-family:'Noto Sans KR',sans-serif; outline:none;
     }
     .chat-input-row input:focus { border-color:var(--brown3); }
+    .badge { display:inline-block; background:#8B3A3A; color:#fff; border-radius:999px; font-size:11px; padding:1px 7px; margin-left:3px; font-weight:600; }
   </style>
 </head>
 <body>
@@ -254,7 +255,7 @@
   <button class="nav-btn" onclick="showSection('clients', this)">내담자 관리</button>
   <button class="nav-btn" onclick="showSection('journal', this)">상담 일지</button>
   <button class="nav-btn" onclick="showSection('settlement', this)">정산 관리</button>
-  <button class="nav-btn" onclick="showSection('chat', this)">💬 채팅</button>
+  <button class="nav-btn" onclick="showSection('chat', this)">💬 채팅 <span id="chatBadge" style="display:none;background:#8B3A3A;color:#fff;border-radius:999px;font-size:11px;padding:1px 7px;margin-left:3px;font-weight:600;"></span></button>
 </div>
 
 <div class="content">
@@ -379,7 +380,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-  import { getFirestore, collection, addDoc, getDocs, deleteDoc, query, where, doc, getDoc, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, getDocs, deleteDoc, updateDoc, query, where, doc, getDoc, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyD_KRShHlXR6WCbYdVoruiAbA6LRsSWFBM",
@@ -411,6 +412,7 @@
     loadClients();
     loadJournals();
     loadSettlements();
+    startUnreadListener();
   });
 
   window.showSection = function(name, btn) {
@@ -531,6 +533,41 @@
     document.getElementById('chatClientName').textContent = clientName + '님과의 채팅';
     document.getElementById('chatArea').style.display = 'block';
     startRealtimeChat(clientId);
+      async function markAsRead(clientId) {
+    const q = query(
+      collection(db, 'chats'),
+      where('clientId', '==', clientId),
+      where('senderType', '==', 'client'),
+      where('read', '==', false)
+    );
+    const snap = await getDocs(q);
+    snap.forEach(async d => {
+      await updateDoc(doc(db, 'chats', d.id), { read: true });
+    });
+    updateBadge();
+  }
+
+  function startUnreadListener() {
+    if (!currentUser) return;
+    onSnapshot(
+      query(collection(db, 'chats'), where('senderType', '==', 'client'), where('read', '==', false)),
+      (snap) => {
+        const badge = document.getElementById('chatBadge');
+        if (snap.size > 0) {
+          badge.style.display = 'inline-block';
+          badge.textContent = snap.size;
+        } else {
+          badge.style.display = 'none';
+        }
+      }
+    );
+  }
+
+  function updateBadge() {
+    const badge = document.getElementById('chatBadge');
+    badge.style.display = 'none';
+  }
+    markAsRead(clientId);
   }
 
   function startRealtimeChat(clientId) {
