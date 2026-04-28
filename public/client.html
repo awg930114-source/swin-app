@@ -293,22 +293,23 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-  import { getFirestore, collection, addDoc, getDocs, query, where, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, getDocs, query, where, doc, getDoc, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyD_KRShHlXR6WCbYdVoruiAbA6LRsSWFBM",
-  authDomain: "swin-app-70ff0.firebaseapp.com",
-  projectId: "swin-app-70ff0",
-  storageBucket: "swin-app-70ff0.firebasestorage.app",
-  messagingSenderId: "1068222848657",
-  appId: "1:1068222848657:web:79cdc26b6a487dcbdc2930"
-};
+  const firebaseConfig = {
+    apiKey: "AIzaSyD_KRShHlXR6WCbYdVoruiAbA6LRsSWFBM",
+    authDomain: "swin-app-70ff0.firebaseapp.com",
+    projectId: "swin-app-70ff0",
+    storageBucket: "swin-app-70ff0.firebasestorage.app",
+    messagingSenderId: "1068222848657",
+    appId: "1:1068222848657:web:79cdc26b6a487dcbdc2930"
+  };
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
   let currentUser = null;
   let selectedMood = null;
+  let chatUnsubscribe = null;
 
   onAuthStateChanged(auth, async (user) => {
     if (!user) { window.location.href = 'index.html'; return; }
@@ -321,7 +322,7 @@ const firebaseConfig = {
     }
     loadTasks();
     loadMoods();
-    loadChats();
+    startRealtimeChat();
   });
 
   window.showSection = function(name, btn) {
@@ -332,6 +333,7 @@ const firebaseConfig = {
   }
 
   window.logout = async function() {
+    if (chatUnsubscribe) chatUnsubscribe();
     await signOut(auth);
     window.location.href = 'index.html';
   }
@@ -407,43 +409,51 @@ const firebaseConfig = {
     });
   }
 
-  async function loadChats() {
+  function startRealtimeChat() {
     if (!currentUser) return;
-    const q = query(collection(db, 'chats'), where('clientId', '==', currentUser.uid));
-    const snap = await getDocs(q);
-    if (snap.empty) return;
+    if (chatUnsubscribe) chatUnsubscribe();
+    const q = query(
+      collection(db, 'chats'),
+      where('clientId', '==', currentUser.uid),
+      orderBy('createdAt', 'asc')
+    );
     const box = document.getElementById('chatBox');
-    const items = [];
-    snap.forEach(d => items.push(d.data()));
-    items.sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
-    items.forEach(d => {
-      const isMine = d.senderType === 'client';
-      box.innerHTML += `
-        <div class="chat-msg ${isMine ? 'mine' : ''}">
-          <div class="chat-sender">${isMine ? '나' : '상담사'}</div>
-          <div class="chat-bubble">${d.message}</div>
+    box.innerHTML = `
+      <div class="chat-msg">
+        <div class="chat-sender">상담사</div>
+        <div class="chat-bubble">안녕하세요! 궁금한 점이 있으시면 편하게 말씀해주세요 🍵</div>
+      </div>`;
+    chatUnsubscribe = onSnapshot(q, (snap) => {
+      box.innerHTML = `
+        <div class="chat-msg">
+          <div class="chat-sender">상담사</div>
+          <div class="chat-bubble">안녕하세요! 궁금한 점이 있으시면 편하게 말씀해주세요 🍵</div>
         </div>`;
+      snap.forEach(d => {
+        const data = d.data();
+        const isMine = data.senderType === 'client';
+        box.innerHTML += `
+          <div class="chat-msg ${isMine ? 'mine' : ''}">
+            <div class="chat-sender">${isMine ? '나' : '상담사'}</div>
+            <div class="chat-bubble">${data.message}</div>
+          </div>`;
+      });
+      box.scrollTop = box.scrollHeight;
     });
-    box.scrollTop = box.scrollHeight;
   }
 
   window.sendMessage = async function() {
     const input = document.getElementById('chatInput');
     const msg = input.value.trim();
     if (!msg) return;
+    input.value = '';
     try {
       await addDoc(collection(db, 'chats'), {
-        clientId: currentUser.uid, message: msg,
-        senderType: 'client', createdAt: new Date()
+        clientId: currentUser.uid,
+        message: msg,
+        senderType: 'client',
+        createdAt: new Date()
       });
-      const box = document.getElementById('chatBox');
-      box.innerHTML += `
-        <div class="chat-msg mine">
-          <div class="chat-sender">나</div>
-          <div class="chat-bubble">${msg}</div>
-        </div>`;
-      box.scrollTop = box.scrollHeight;
-      input.value = '';
     } catch(e) { console.error(e); }
   }
 
