@@ -485,8 +485,7 @@
         </div>`;
       sel1.innerHTML += `<option value="${data.name}">${data.name}</option>`;
       sel2.innerHTML += `<option value="${data.name}">${data.name}</option>`;
-      sel3.innerHTML += `<option value="${d.id}" data-name="${data.name}">${data.name}</option>`;
-    });
+      sel3.innerHTML += `<option value="${data.clientUid || d.id}" data-name="${data.name}">${data.name}</option>`;
     document.getElementById('totalClients').textContent = count;
   }
 
