@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>쉼표 — 상담사</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600&family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:#F5F0E8;--bg2:#EDE6D6;--card:#FAF7F2;
+      --brown:#7C5C3E;--brown2:#A07850;--brown3:#C4A882;
+      --accent:#C17F4A;--border:rgba(124,92,62,0.15);--border2:rgba(124,92,62,0.22);
+      --text:#3D2B1A;--text2:#7A5C42;--text3:#A08060;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Noto Sans KR',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+    /* 헤더 */
+    .header {
+      background:var(--brown);
+      padding:14px 20px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      position:sticky;
+      top:0;
+      z-index:100;
+    }
+    .header-logo {
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .header-name {
+      font-family:'Noto Serif KR',serif;
+      font-size:18px;
+      color:#FAF7F2;
+      font-weight:600;
+    }
+    .header-comma { color:#E8C898; }
+    .header-user { font-size:12px; color:rgba(250,247,242,0.75); }
+    .logout-btn {
+      font-size:12px;
+      color:rgba(250,247,242,0.85);
+      background:rgba(255,255,255,0.12);
+      border:1px solid rgba(255,255,255,0.2);
+      padding:6px 16px;
+      border-radius:999px;
+      cursor:pointer;
+      font-family:'Noto Sans KR',sans-serif;
+      transition:background .2s;
+    }
+    .logout-btn:hover { background:rgba(255,255,255,0.2); }
+
+    /* 네비 */
+    .nav {
+      background:var(--card);
+      display:flex;
+      border-bottom:1px solid var(--border);
+      padding:0 12px;
+      overflow-x:auto;
+    }
+    .nav-btn {
+      padding:13px 16px;
+      border:none;
+      background:transparent;
+      font-size:13px;
+      color:var(--text3);
+      cursor:pointer;
+      border-bottom:2px solid transparent;
+      font-family:'Noto Sans KR',sans-serif;
+      white-space:nowrap;
+      transition:all .2s;
+    }
+    .nav-btn.active { color:var(--brown); font-weight:500; border-bottom-color:var(--accent); }
+
+    /* 콘텐츠 */
+    .content { padding:20px; max-width:800px; margin:0 auto; }
+    .section { display:none; }
+    .section.active { display:block; }
+
+    /* 카드 */
+    .card {
+      background:var(--card);
+      border-radius:20px;
+      padding:22px;
+      margin-bottom:14px;
+      border:1px solid var(--border);
+    }
+    .card-title {
+      font-size:14px;
+      font-weight:500;
+      color:var(--brown2);
+      margin-bottom:16px;
+      display:flex;
+      align-items:center;
+      gap:7px;
+    }
+    .card-dot { width:7px; height:7px; border-radius:50%; background:var(--accent); flex-shrink:0; }
+
+    /* 통계 */
+    .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:14px; }
+    .stat-box {
+      background:var(--card);
+      border-radius:16px;
+      padding:16px;
+      text-align:center;
+      border:1px solid var(--border);
+    }
+    .stat-n { font-size:28px; font-weight:600; color:var(--brown); font-family:'Noto Serif KR',serif; }
+    .stat-l { font-size:11px; color:var(--text3); margin-top:4px; }
+
+    /* 폼 */
+    .field-wrap { margin-bottom:14px; }
+    .field-label { font-size:12px; color:var(--text2); margin-bottom:6px; font-weight:500; display:block; }
+    .field-input, .field-select, .field-textarea {
+      width:100%;
+      padding:11px 16px;
+      border:1px solid var(--border2);
+      border-radius:999px;
+      font-size:14px;
+      background:var(--bg);
+      color:var(--text);
+      font-family:'Noto Sans KR',sans-serif;
+      outline:none;
+      transition:border-color .2s;
+    }
+    .field-input:focus, .field-select:focus, .field-textarea:focus { border-color:var(--brown3); }
+    .field-textarea { border-radius:16px; height:100px; resize:vertical; }
+    .field-select { border-radius:999px; }
+
+    /* 버튼 */
+    .btn-pill {
+      padding:11px 24px;
+      background:var(--brown);
+      color:#FAF7F2;
+      border:none;
+      border-radius:999px;
+      font-size:14px;
+      font-weight:500;
+      cursor:pointer;
+      font-family:'Noto Sans KR',sans-serif;
+      transition:background .2s;
+    }
+    .btn-pill:hover { background:var(--brown2); }
+    .btn-sm {
+      padding:6px 14px;
+      border-radius:999px;
+      font-size:12px;
+      font-family:'Noto Sans KR',sans-serif;
+      cursor:pointer;
+      font-weight:500;
+      background:transparent;
+      color:var(--brown2);
+      border:1px solid var(--brown3);
+      transition:all .2s;
+    }
+    .btn-sm:hover { background:var(--bg2); }
+
+    /* 내담자 목록 */
+    .client-item {
+      display:flex;
+      align-items:center;
+      padding:13px 0;
+      border-bottom:1px solid var(--border);
+    }
+    .client-item:last-child { border-bottom:none; }
+    .client-avatar {
+      width:38px; height:38px;
+      border-radius:50%;
+      background:var(--bg2);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:14px;
+      font-weight:500;
+      color:var(--brown);
+      flex-shrink:0;
+    }
+    .client-info { margin-left:12px; flex:1; }
+    .client-name { font-size:14px; font-weight:500; color:var(--text); }
+    .client-tag { font-size:12px; color:var(--text3); margin-top:2px; }
+
+    /* 일지 */
+    .journal-item { padding:14px 0; border-bottom:1px solid var(--border); }
+    .journal-item:last-child { border-bottom:none; }
+    .journal-date { font-size:11px; color:var(--text3); margin-bottom:3px; }
+    .journal-client { font-size:14px; font-weight:500; color:var(--brown2); }
+    .journal-content { font-size:13px; color:var(--text2); margin-top:4px; line-height:1.6; }
+
+    /* 정산 */
+    .settle-item {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:13px 0;
+      border-bottom:1px solid var(--border);
+    }
+    .settle-item:last-child { border-bottom:none; }
+    .settle-amount { font-size:15px; font-weight:600; color:var(--brown); font-family:'Noto Serif KR',serif; }
+
+    .msg { font-size:13px; margin-top:10px; color:#c0392b; }
+    .msg.ok { color:var(--brown); }
+    .empty { text-align:center; color:var(--text3); font-size:13px; padding:20px 0; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">
+    <svg width="30" height="30" viewBox="0 0 72 72" fill="none">
+      <circle cx="36" cy="36" r="34" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.25)" stroke-width="1.2"/>
+      <text x="22" y="50" font-family="'Noto Serif KR',serif" font-size="38" font-weight="600" fill="#FAF7F2">,</text>
+      <g transform="translate(40,44)">
+        <rect x="0" y="0" width="22" height="10" rx="4" fill="rgba(255,255,255,0.35)"/>
+        <rect x="2" y="8" width="18" height="7" rx="3" fill="rgba(255,255,255,0.25)"/>
+        <rect x="0" y="3" width="4" height="12" rx="2" fill="rgba(255,255,255,0.35)"/>
+        <rect x="18" y="3" width="4" height="12" rx="2" fill="rgba(255,255,255,0.35)"/>
+        <rect x="3" y="14" width="3" height="4" rx="1.5" fill="rgba(255,255,255,0.2)"/>
+        <rect x="16" y="14" width="3" height="4" rx="1.5" fill="rgba(255,255,255,0.2)"/>
+      </g>
+    </svg>
+    <span class="header-name">쉼표<span class="header-comma">,</span></span>
+  </div>
+  <span class="header-user" id="counselorName">상담사님</span>
+  <button class="logout-btn" onclick="logout()">로그아웃</button>
+</div>
+
+<div class="nav">
+  <button class="nav-btn active" onclick="showSection('home', this)">홈</button>
+  <button class="nav-btn" onclick="showSection('clients', this)">내담자 관리</button>
+  <button class="nav-btn" onclick="showSection('journal', this)">상담 일지</button>
+  <button class="nav-btn" onclick="showSection('settlement', this)">정산 관리</button>
+</div>
+
+<div class="content">
+
+  <!-- 홈 -->
+  <div class="section active" id="home">
+    <div class="stats">
+      <div class="stat-box"><div class="stat-n" id="totalClients">0</div><div class="stat-l">전체 내담자</div></div>
+      <div class="stat-box"><div class="stat-n" id="totalJournals">0</div><div class="stat-l">상담 일지</div></div>
+      <div class="stat-box"><div class="stat-n" id="totalAmount">0</div><div class="stat-l">이번달 수납(만원)</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="card-dot"></span>오늘 할 일</div>
+      <p style="font-size:13px;color:var(--text3);line-height:1.8;">내담자를 등록하고 상담 일지를 작성해보세요.<br>오늘도 따뜻한 하루 보내세요 ☕</p>
+    </div>
+  </div>
+
+  <!-- 내담자 관리 -->
+  <div class="section" id="clients">
+    <div class="card">
+      <div class="card-title"><span class="card-dot"></span>내담자 등록</div>
+      <div class="field-wrap">
+        <label class="field-label">이름</label>
+        <input class="field-input" type="text" id="clientName" placeholder="내담자 이름">
+      </div>
+      <div class="field-wrap">
+        <label class="field-label">연락처</label>
+        <input class="field-input" type="tel" id="clientPhone" placeholder="010-0000-0000">
+      </div>
+      <div class="field-wrap">
+        <label class="field-label">상담 주제</label>
+        <input class="field-input" type="text" id="clientIssue" placeholder="예: 불안, 우울, 관계">
+      </div>
+      <div class="field-wrap">
+        <label class="field-label">메모</label>
+        <textarea class="field-textarea" id="clientMemo" placeholder="추가 메모"></textarea>
+      </div>
+      <button class="btn-pill" onclick="addClient()">등록하기</button>
+      <div class="msg" id="clientMsg"></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="card-dot"></span>내담자 목록</div>
+      <div id="clientList"><div class="empty">등록된 내담자가 없어요</div></div>
+    </div>
+  </div>
+
+  <!-- 상담 일지 -->
+  <div class="section" id="journal">
+    <div class="card">
+      <div class="card-title"><span class="card-dot"></span>일지 작성</div>
+      <div class="field-wrap">
+        <label class="field-label">내담자 선택</label>
+        <select class="field-select" id="journalClient">
+          <option value="">내담자를 선택하세요</option>
+        </select>
+      </div>
+      <div class="field-wrap">
+        <label class="field-label">상담 날짜</label>
+        <input class="field-input" type="date" id="journalDate">
+      </div>
+      <div class="field-wrap">
+        <label class="field-label">상담 내용</label>
+        <textarea class="field-textarea" id="journalContent" placeholder="오늘 상담 내용을 기록하세요"></textarea>
+      </div>
+      <div class="field-wrap">
+        <label class="field-label">다음 상담 계획</label>
+        <textarea class="field-textarea" id="journalPlan" placeholder="다음 상담 계획 또는 과제"></textarea>
+      </div>
+      <button class="btn-pill" onclick="addJournal()">저장하기</button>
+      <div class="msg" id="journalMsg"></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="card-dot"></span>일지 목록</div>
+      <div id="journalList"><div class="empty">작성된 일지가 없어요</div></div>
+    </div>
+  </div>
+
+  <!-- 정산 관리 -->
+  <div class="section" id="settlement">
+    <div class="card">
+      <div class="card-title"><span class="card-dot"></span>수납 등록</div>
+      <div class="field-wrap">
+        <label class="field-label">내담자 선택</label>
+        <select class="field-select" id="settlementClient">
+          <option value="">내담자를 선택하세요</option>
+        </select>
+      </div>
+      <div class="field-wrap">
+        <label class="field-label">금액 (원)</label>
+        <input class="field-input" type="number" id="settlementAmount" placeholder="예: 80000">
+      </div>
+      <div class="field-wrap">
+        <label class="field-label">날짜</label>
+        <input class="field-input" type="date" id="settlementDate">
+      </div>
+      <div class="field-wrap">
+        <label class="field-label">메모</label>
+        <input class="field-input" type="text" id="settlementMemo" placeholder="예: 4회기 수납">
+      </div>
+      <button class="btn-pill" onclick="addSettlement()">등록하기</button>
+      <div class="msg" id="settlementMsg"></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="card-dot"></span>수납 내역</div>
+      <div id="settlementList"><div class="empty">등록된 수납 내역이 없어요</div></div>
+    </div>
+  </div>
+
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getFirestore, collection, addDoc, getDocs, query, where, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+ const firebaseConfig = {
+  apiKey: "AIzaSyD_KRShHlXR6WCbYdVoruiAbA6LRsSWFBM",
+  authDomain: "swin-app-70ff0.firebaseapp.com",
+  projectId: "swin-app-70ff0",
+  storageBucket: "swin-app-70ff0.firebasestorage.app",
+  messagingSenderId: "1068222848657",
+  appId: "1:1068222848657:web:79cdc26b6a487dcbdc2930"
+};
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  let currentUser = null;
+
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('journalDate').value = today;
+  document.getElementById('settlementDate').value = today;
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) { window.location.href = 'index.html'; return; }
+    currentUser = user;
+    const userDoc = await getDoc(doc(db, 'users', user.uid));
+    if (userDoc.exists()) {
+      document.getElementById('counselorName').textContent = userDoc.data().name + ' 상담사님';
+    }
+    loadClients();
+    loadJournals();
+    loadSettlements();
+  });
+
+  window.showSection = function(name, btn) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(name).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  window.logout = async function() {
+    await signOut(auth);
+    window.location.href = 'index.html';
+  }
+
+  window.addClient = async function() {
+    const name = document.getElementById('clientName').value;
+    const phone = document.getElementById('clientPhone').value;
+    const issue = document.getElementById('clientIssue').value;
+    const memo = document.getElementById('clientMemo').value;
+    const msg = document.getElementById('clientMsg');
+    if (!name) { msg.textContent = '이름을 입력해주세요.'; return; }
+    try {
+      await addDoc(collection(db, 'clients'), {
+        counselorId: currentUser.uid, name, phone, issue, memo, createdAt: new Date()
+      });
+      msg.className = 'msg ok';
+      msg.textContent = '등록 완료!';
+      document.getElementById('clientName').value = '';
+      document.getElementById('clientPhone').value = '';
+      document.getElementById('clientIssue').value = '';
+      document.getElementById('clientMemo').value = '';
+      loadClients();
+    } catch(e) { msg.textContent = '오류: ' + e.message; }
+  }
+
+  async function loadClients() {
+    if (!currentUser) return;
+    const q = query(collection(db, 'clients'), where('counselorId', '==', currentUser.uid));
+    const snap = await getDocs(q);
+    const list = document.getElementById('clientList');
+    const sel1 = document.getElementById('journalClient');
+    const sel2 = document.getElementById('settlementClient');
+    sel1.innerHTML = '<option value="">내담자를 선택하세요</option>';
+    sel2.innerHTML = '<option value="">내담자를 선택하세요</option>';
+    if (snap.empty) { list.innerHTML = '<div class="empty">등록된 내담자가 없어요</div>'; return; }
+    list.innerHTML = '';
+    let count = 0;
+    snap.forEach(d => {
+      count++;
+      const data = d.data();
+      const initial = data.name.charAt(0);
+      list.innerHTML += `
+        <div class="client-item">
+          <div class="client-avatar">${initial}</div>
+          <div class="client-info">
+            <div class="client-name">${data.name}</div>
+            <div class="client-tag">${data.phone || ''} ${data.issue ? '· ' + data.issue : ''}</div>
+          </div>
+          <button class="btn-sm">상세</button>
+        </div>`;
+      sel1.innerHTML += `<option value="${data.name}">${data.name}</option>`;
+      sel2.innerHTML += `<option value="${data.name}">${data.name}</option>`;
+    });
+    document.getElementById('totalClients').textContent = count;
+  }
+
+  window.addJournal = async function() {
+    const client = document.getElementById('journalClient').value;
+    const date = document.getElementById('journalDate').value;
+    const content = document.getElementById('journalContent').value;
+    const plan = document.getElementById('journalPlan').value;
+    const msg = document.getElementById('journalMsg');
+    if (!client || !content) { msg.textContent = '내담자와 상담 내용을 입력해주세요.'; return; }
+    try {
+      await addDoc(collection(db, 'journals'), {
+        counselorId: currentUser.uid, client, date, content, plan, createdAt: new Date()
+      });
+      msg.className = 'msg ok';
+      msg.textContent = '저장 완료!';
+      document.getElementById('journalContent').value = '';
+      document.getElementById('journalPlan').value = '';
+      loadJournals();
+    } catch(e) { msg.textContent = '오류: ' + e.message; }
+  }
+
+  async function loadJournals() {
+    if (!currentUser) return;
+    const q = query(collection(db, 'journals'), where('counselorId', '==', currentUser.uid));
+    const snap = await getDocs(q);
+    const list = document.getElementById('journalList');
+    if (snap.empty) { list.innerHTML = '<div class="empty">작성된 일지가 없어요</div>'; return; }
+    list.innerHTML = '';
+    let count = 0;
+    snap.forEach(d => {
+      count++;
+      const data = d.data();
+      list.innerHTML += `
+        <div class="journal-item">
+          <div class="journal-date">${data.date}</div>
+          <div class="journal-client">${data.client}</div>
+          <div class="journal-content">${data.content}</div>
+        </div>`;
+    });
+    document.getElementById('totalJournals').textContent = count;
+  }
+
+  window.addSettlement = async function() {
+    const client = document.getElementById('settlementClient').value;
+    const amount = document.getElementById('settlementAmount').value;
+    const date = document.getElementById('settlementDate').value;
+    const memo = document.getElementById('settlementMemo').value;
+    const msg = document.getElementById('settlementMsg');
+    if (!client || !amount) { msg.textContent = '내담자와 금액을 입력해주세요.'; return; }
+    try {
+      await addDoc(collection(db, 'settlements'), {
+        counselorId: currentUser.uid, client, amount: Number(amount), date, memo, createdAt: new Date()
+      });
+      msg.className = 'msg ok';
+      msg.textContent = '등록 완료!';
+      document.getElementById('settlementAmount').value = '';
+      document.getElementById('settlementMemo').value = '';
+      loadSettlements();
+    } catch(e) { msg.textContent = '오류: ' + e.message; }
+  }
+
+  async function loadSettlements() {
+    if (!currentUser) return;
+    const q = query(collection(db, 'settlements'), where('counselorId', '==', currentUser.uid));
+    const snap = await getDocs(q);
+    const list = document.getElementById('settlementList');
+    if (snap.empty) { list.innerHTML = '<div class="empty">등록된 수납 내역이 없어요</div>'; return; }
+    list.innerHTML = '';
+    let total = 0;
+    snap.forEach(d => {
+      const data = d.data();
+      total += data.amount;
+      list.innerHTML += `
+        <div class="settle-item">
+          <div>
+            <div class="client-name">${data.client}</div>
+            <div class="client-tag">${data.date} ${data.memo ? '· ' + data.memo : ''}</div>
+          </div>
+          <div class="settle-amount">${data.amount.toLocaleString()}원</div>
+        </div>`;
+    });
+    document.getElementById('totalAmount').textContent = Math.round(total / 10000);
+  }
+</script>
+</body>
+</html>

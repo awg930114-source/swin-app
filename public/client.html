@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>쉼표 — 내담자</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600&family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:#F5F0E8;--bg2:#EDE6D6;--card:#FAF7F2;
+      --brown:#7C5C3E;--brown2:#A07850;--brown3:#C4A882;
+      --accent:#C17F4A;--border:rgba(124,92,62,0.15);--border2:rgba(124,92,62,0.22);
+      --text:#3D2B1A;--text2:#7A5C42;--text3:#A08060;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Noto Sans KR',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+    .header {
+      background:var(--brown);
+      padding:14px 20px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      position:sticky;
+      top:0;
+      z-index:100;
+    }
+    .header-logo { display:flex; align-items:center; gap:8px; }
+    .header-name { font-family:'Noto Serif KR',serif; font-size:18px; color:#FAF7F2; font-weight:600; }
+    .header-comma { color:#E8C898; }
+    .header-user { font-size:12px; color:rgba(250,247,242,0.75); }
+    .logout-btn {
+      font-size:12px; color:rgba(250,247,242,0.85);
+      background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.2);
+      padding:6px 16px; border-radius:999px; cursor:pointer;
+      font-family:'Noto Sans KR',sans-serif;
+    }
+
+    .nav {
+      background:var(--card); display:flex;
+      border-bottom:1px solid var(--border);
+      padding:0 12px; overflow-x:auto;
+    }
+    .nav-btn {
+      padding:13px 16px; border:none; background:transparent;
+      font-size:13px; color:var(--text3); cursor:pointer;
+      border-bottom:2px solid transparent;
+      font-family:'Noto Sans KR',sans-serif; white-space:nowrap; transition:all .2s;
+    }
+    .nav-btn.active { color:var(--brown); font-weight:500; border-bottom-color:var(--accent); }
+
+    .content { padding:20px; max-width:800px; margin:0 auto; }
+    .section { display:none; }
+    .section.active { display:block; }
+
+    .card {
+      background:var(--card); border-radius:20px;
+      padding:22px; margin-bottom:14px; border:1px solid var(--border);
+    }
+    .card-title {
+      font-size:14px; font-weight:500; color:var(--brown2);
+      margin-bottom:16px; display:flex; align-items:center; gap:7px;
+    }
+    .card-dot { width:7px; height:7px; border-radius:50%; background:var(--accent); flex-shrink:0; }
+
+    .field-wrap { margin-bottom:14px; }
+    .field-label { font-size:12px; color:var(--text2); margin-bottom:6px; font-weight:500; display:block; }
+    .field-input, .field-textarea {
+      width:100%; padding:11px 16px;
+      border:1px solid var(--border2); border-radius:999px;
+      font-size:14px; background:var(--bg); color:var(--text);
+      font-family:'Noto Sans KR',sans-serif; outline:none; transition:border-color .2s;
+    }
+    .field-input:focus, .field-textarea:focus { border-color:var(--brown3); }
+    .field-textarea { border-radius:16px; height:90px; resize:vertical; }
+
+    .btn-pill {
+      padding:11px 24px; background:var(--brown); color:#FAF7F2;
+      border:none; border-radius:999px; font-size:14px; font-weight:500;
+      cursor:pointer; font-family:'Noto Sans KR',sans-serif; transition:background .2s;
+    }
+    .btn-pill:hover { background:var(--brown2); }
+    .btn-pill-full {
+      width:100%; padding:13px; background:var(--brown); color:#FAF7F2;
+      border:none; border-radius:999px; font-size:15px; font-weight:500;
+      cursor:pointer; font-family:'Noto Sans KR',sans-serif;
+      transition:background .2s; margin-top:6px;
+    }
+    .btn-pill-full:hover { background:var(--brown2); }
+
+    /* 과제 */
+    .task-item {
+      padding:14px; background:var(--bg);
+      border-radius:14px; margin-bottom:10px;
+      border-left:3px solid var(--accent);
+    }
+    .task-date { font-size:11px; color:var(--text3); margin-bottom:4px; }
+    .task-content { font-size:13px; color:var(--text2); line-height:1.7; }
+
+    /* 채팅 */
+    .chat-box {
+      height:300px; overflow-y:auto;
+      border:1px solid var(--border2); border-radius:16px;
+      padding:16px; margin-bottom:12px; background:var(--bg);
+    }
+    .chat-msg { margin-bottom:12px; display:flex; flex-direction:column; }
+    .chat-msg.mine { align-items:flex-end; }
+    .chat-sender { font-size:11px; color:var(--text3); margin-bottom:3px; }
+    .chat-bubble {
+      max-width:72%; padding:10px 16px;
+      border-radius:18px; font-size:14px;
+      line-height:1.6; background:var(--bg2); color:var(--text2);
+    }
+    .chat-msg.mine .chat-bubble { background:var(--brown); color:#FAF7F2; }
+    .chat-input-row { display:flex; gap:8px; }
+    .chat-input-row input {
+      flex:1; padding:11px 16px;
+      border:1px solid var(--border2); border-radius:999px;
+      font-size:14px; background:var(--bg); color:var(--text);
+      font-family:'Noto Sans KR',sans-serif; outline:none;
+    }
+    .chat-input-row input:focus { border-color:var(--brown3); }
+
+    /* 기분 */
+    .mood-row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
+    .mood-btn {
+      padding:10px 16px; border:1.5px solid var(--border2);
+      border-radius:999px; background:var(--bg);
+      cursor:pointer; font-size:14px; transition:all .2s;
+      font-family:'Noto Sans KR',sans-serif;
+    }
+    .mood-btn.selected { border-color:var(--brown); background:var(--bg2); }
+    .mood-item {
+      padding:12px; background:var(--bg);
+      border-radius:14px; margin-bottom:8px;
+      border-left:3px solid var(--brown3);
+    }
+    .mood-date { font-size:11px; color:var(--text3); margin-bottom:3px; }
+    .mood-content { font-size:13px; color:var(--text2); }
+
+    /* 위기 */
+    .crisis-btn {
+      width:100%; padding:18px;
+      background:#8B3A3A; color:#FAF7F2;
+      border:none; border-radius:999px;
+      font-size:16px; font-weight:500;
+      cursor:pointer; margin-bottom:16px;
+      font-family:'Noto Serif KR',serif;
+      letter-spacing:0.5px; transition:background .2s;
+    }
+    .crisis-btn:hover { background:#6E2E2E; }
+    .crisis-info {
+      background:var(--bg); border-radius:16px;
+      padding:18px; font-size:13px;
+      color:var(--text2); line-height:2;
+      border:1px solid var(--border);
+    }
+    .crisis-info a { color:#8B3A3A; font-weight:500; }
+
+    .welcome-card {
+      background:var(--card); border-radius:20px;
+      padding:24px; margin-bottom:14px;
+      border:1px solid var(--border);
+    }
+    .welcome-title {
+      font-family:'Noto Serif KR',serif;
+      font-size:18px; color:var(--brown);
+      margin-bottom:8px;
+    }
+    .welcome-sub { font-size:13px; color:var(--text3); line-height:1.8; }
+
+    .msg { font-size:13px; margin-top:10px; color:#c0392b; }
+    .msg.ok { color:var(--brown); }
+    .empty { text-align:center; color:var(--text3); font-size:13px; padding:20px 0; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">
+    <svg width="30" height="30" viewBox="0 0 72 72" fill="none">
+      <circle cx="36" cy="36" r="34" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.25)" stroke-width="1.2"/>
+      <text x="22" y="50" font-family="'Noto Serif KR',serif" font-size="38" font-weight="600" fill="#FAF7F2">,</text>
+      <g transform="translate(40,44)">
+        <rect x="0" y="0" width="22" height="10" rx="4" fill="rgba(255,255,255,0.35)"/>
+        <rect x="2" y="8" width="18" height="7" rx="3" fill="rgba(255,255,255,0.25)"/>
+        <rect x="0" y="3" width="4" height="12" rx="2" fill="rgba(255,255,255,0.35)"/>
+        <rect x="18" y="3" width="4" height="12" rx="2" fill="rgba(255,255,255,0.35)"/>
+        <rect x="3" y="14" width="3" height="4" rx="1.5" fill="rgba(255,255,255,0.2)"/>
+        <rect x="16" y="14" width="3" height="4" rx="1.5" fill="rgba(255,255,255,0.2)"/>
+      </g>
+    </svg>
+    <span class="header-name">쉼표<span class="header-comma">,</span></span>
+  </div>
+  <span class="header-user" id="clientNameHeader">내담자님</span>
+  <button class="logout-btn" onclick="logout()">로그아웃</button>
+</div>
+
+<div class="nav">
+  <button class="nav-btn active" onclick="showSection('home', this)">홈</button>
+  <button class="nav-btn" onclick="showSection('tasks', this)">상담 과제</button>
+  <button class="nav-btn" onclick="showSection('chat', this)">상담사 채팅</button>
+  <button class="nav-btn" onclick="showSection('mood', this)">기분 기록</button>
+  <button class="nav-btn" onclick="showSection('crisis', this)">위기 지원</button>
+</div>
+
+<div class="content">
+
+  <!-- 홈 -->
+  <div class="section active" id="home">
+    <div class="welcome-card">
+      <div class="welcome-title" id="welcomeMsg">안녕하세요 😊</div>
+      <div class="welcome-sub">오늘도 쉼표와 함께해요.<br>상담 과제를 확인하고 상담사 선생님과 소통해보세요.</div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="card-dot"></span>다음 상담 일정</div>
+      <div class="empty">예약된 상담이 없어요</div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="card-dot"></span>미완료 과제</div>
+      <div id="homeTasks"><div class="empty">등록된 과제가 없어요</div></div>
+    </div>
+  </div>
+
+  <!-- 상담 과제 -->
+  <div class="section" id="tasks">
+    <div class="card">
+      <div class="card-title"><span class="card-dot"></span>내 과제 목록</div>
+      <div id="taskList"><div class="empty">등록된 과제가 없어요</div></div>
+    </div>
+  </div>
+
+  <!-- 채팅 -->
+  <div class="section" id="chat">
+    <div class="card">
+      <div class="card-title"><span class="card-dot"></span>상담사 채팅</div>
+      <div class="chat-box" id="chatBox">
+        <div class="chat-msg">
+          <div class="chat-sender">상담사</div>
+          <div class="chat-bubble">안녕하세요! 궁금한 점이 있으시면 편하게 말씀해주세요 🍵</div>
+        </div>
+      </div>
+      <div class="chat-input-row">
+        <input type="text" id="chatInput" placeholder="메시지를 입력하세요" onkeydown="if(event.key==='Enter') sendMessage()">
+        <button class="btn-pill" onclick="sendMessage()">전송</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 기분 기록 -->
+  <div class="section" id="mood">
+    <div class="card">
+      <div class="card-title"><span class="card-dot"></span>오늘 기분은 어때요?</div>
+      <div class="mood-row">
+        <button class="mood-btn" onclick="selectMood(this, 5)">😊 좋아요</button>
+        <button class="mood-btn" onclick="selectMood(this, 4)">🙂 괜찮아요</button>
+        <button class="mood-btn" onclick="selectMood(this, 3)">😐 보통이에요</button>
+        <button class="mood-btn" onclick="selectMood(this, 2)">😔 별로예요</button>
+        <button class="mood-btn" onclick="selectMood(this, 1)">😢 힘들어요</button>
+      </div>
+      <div class="field-wrap">
+        <label class="field-label">오늘 하루 한 줄 기록</label>
+        <textarea class="field-textarea" id="moodMemo" placeholder="오늘 어떤 하루였나요?"></textarea>
+      </div>
+      <button class="btn-pill-full" onclick="saveMood()">저장하기</button>
+      <div class="msg" id="moodMsg"></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="card-dot"></span>기분 기록</div>
+      <div id="moodList"><div class="empty">기록된 기분이 없어요</div></div>
+    </div>
+  </div>
+
+  <!-- 위기 지원 -->
+  <div class="section" id="crisis">
+    <div class="card">
+      <div class="card-title"><span class="card-dot"></span>위기 지원</div>
+      <button class="crisis-btn" onclick="sendCrisisAlert()">
+        지금 많이 힘들어요 — 상담사에게 알리기
+      </button>
+      <div class="crisis-info">
+        <strong style="color:var(--brown);">24시간 위기상담 전화</strong><br>
+        자살예방상담전화: <a href="tel:1393">1393</a><br>
+        정신건강 위기상담: <a href="tel:1577-0199">1577-0199</a><br>
+        청소년 전화: <a href="tel:1388">1388</a><br><br>
+        <span style="font-size:12px;color:var(--text3);">버튼을 누르면 상담사에게 긴급 알림이 전송돼요.</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getFirestore, collection, addDoc, getDocs, query, where, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD_KRShHlXR6WCbYdVoruiAbA6LRsSWFBM",
+  authDomain: "swin-app-70ff0.firebaseapp.com",
+  projectId: "swin-app-70ff0",
+  storageBucket: "swin-app-70ff0.firebasestorage.app",
+  messagingSenderId: "1068222848657",
+  appId: "1:1068222848657:web:79cdc26b6a487dcbdc2930"
+};
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  let currentUser = null;
+  let selectedMood = null;
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) { window.location.href = 'index.html'; return; }
+    currentUser = user;
+    const userDoc = await getDoc(doc(db, 'users', user.uid));
+    if (userDoc.exists()) {
+      const name = userDoc.data().name;
+      document.getElementById('clientNameHeader').textContent = name + '님';
+      document.getElementById('welcomeMsg').textContent = name + '님, 안녕하세요 😊';
+    }
+    loadTasks();
+    loadMoods();
+    loadChats();
+  });
+
+  window.showSection = function(name, btn) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(name).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  window.logout = async function() {
+    await signOut(auth);
+    window.location.href = 'index.html';
+  }
+
+  async function loadTasks() {
+    if (!currentUser) return;
+    const q = query(collection(db, 'tasks'), where('clientId', '==', currentUser.uid));
+    const snap = await getDocs(q);
+    const list = document.getElementById('taskList');
+    const homeList = document.getElementById('homeTasks');
+    if (snap.empty) {
+      list.innerHTML = '<div class="empty">등록된 과제가 없어요</div>';
+      homeList.innerHTML = '<div class="empty">등록된 과제가 없어요</div>';
+      return;
+    }
+    list.innerHTML = '';
+    homeList.innerHTML = '';
+    snap.forEach(d => {
+      const data = d.data();
+      const html = `
+        <div class="task-item">
+          <div class="task-date">${data.date || ''}</div>
+          <div class="task-content">${data.content}</div>
+        </div>`;
+      list.innerHTML += html;
+      homeList.innerHTML += html;
+    });
+  }
+
+  window.selectMood = function(btn, score) {
+    selectedMood = score;
+    document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+  }
+
+  window.saveMood = async function() {
+    const memo = document.getElementById('moodMemo').value;
+    const msg = document.getElementById('moodMsg');
+    if (!selectedMood) { msg.textContent = '기분을 선택해주세요.'; return; }
+    try {
+      await addDoc(collection(db, 'moods'), {
+        clientId: currentUser.uid,
+        score: selectedMood, memo,
+        date: new Date().toISOString().split('T')[0],
+        createdAt: new Date()
+      });
+      msg.className = 'msg ok';
+      msg.textContent = '저장됐어요 😊';
+      document.getElementById('moodMemo').value = '';
+      document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+      selectedMood = null;
+      loadMoods();
+    } catch(e) { msg.textContent = '오류: ' + e.message; }
+  }
+
+  async function loadMoods() {
+    if (!currentUser) return;
+    const q = query(collection(db, 'moods'), where('clientId', '==', currentUser.uid));
+    const snap = await getDocs(q);
+    const list = document.getElementById('moodList');
+    if (snap.empty) { list.innerHTML = '<div class="empty">기록된 기분이 없어요</div>'; return; }
+    const emojis = { 5:'😊', 4:'🙂', 3:'😐', 2:'😔', 1:'😢' };
+    const items = [];
+    snap.forEach(d => items.push(d.data()));
+    items.sort((a, b) => new Date(b.date) - new Date(a.date));
+    list.innerHTML = '';
+    items.slice(0, 10).forEach(d => {
+      list.innerHTML += `
+        <div class="mood-item">
+          <div class="mood-date">${d.date}</div>
+          <div class="mood-content">${emojis[d.score]} ${d.memo || '메모 없음'}</div>
+        </div>`;
+    });
+  }
+
+  async function loadChats() {
+    if (!currentUser) return;
+    const q = query(collection(db, 'chats'), where('clientId', '==', currentUser.uid));
+    const snap = await getDocs(q);
+    if (snap.empty) return;
+    const box = document.getElementById('chatBox');
+    const items = [];
+    snap.forEach(d => items.push(d.data()));
+    items.sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
+    items.forEach(d => {
+      const isMine = d.senderType === 'client';
+      box.innerHTML += `
+        <div class="chat-msg ${isMine ? 'mine' : ''}">
+          <div class="chat-sender">${isMine ? '나' : '상담사'}</div>
+          <div class="chat-bubble">${d.message}</div>
+        </div>`;
+    });
+    box.scrollTop = box.scrollHeight;
+  }
+
+  window.sendMessage = async function() {
+    const input = document.getElementById('chatInput');
+    const msg = input.value.trim();
+    if (!msg) return;
+    try {
+      await addDoc(collection(db, 'chats'), {
+        clientId: currentUser.uid, message: msg,
+        senderType: 'client', createdAt: new Date()
+      });
+      const box = document.getElementById('chatBox');
+      box.innerHTML += `
+        <div class="chat-msg mine">
+          <div class="chat-sender">나</div>
+          <div class="chat-bubble">${msg}</div>
+        </div>`;
+      box.scrollTop = box.scrollHeight;
+      input.value = '';
+    } catch(e) { console.error(e); }
+  }
+
+  window.sendCrisisAlert = async function() {
+    if (!currentUser) return;
+    if (!confirm('상담사에게 긴급 알림을 보낼까요?')) return;
+    try {
+      await addDoc(collection(db, 'crisis'), {
+        clientId: currentUser.uid, createdAt: new Date(), status: 'pending'
+      });
+      alert('상담사에게 알림을 보냈어요. 조금만 기다려주세요 🍵\n\n지금 당장 도움이 필요하면 1393으로 전화해주세요.');
+    } catch(e) { console.error(e); }
+  }
+</script>
+</body>
+</html>
