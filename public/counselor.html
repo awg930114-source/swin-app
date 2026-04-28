@@ -426,23 +426,53 @@
     window.location.href = 'index.html';
   }
 
-  window.addClient = async function() {
-    const name = document.getElementById('clientName').value;
-    const phone = document.getElementById('clientPhone').value;
-    const issue = document.getElementById('clientIssue').value;
-    const memo = document.getElementById('clientMemo').value;
+  window.searchClient = async function() {
+    const email = document.getElementById('searchEmail').value.trim();
     const msg = document.getElementById('clientMsg');
-    if (!name) { msg.textContent = '이름을 입력해주세요.'; return; }
+    const resultDiv = document.getElementById('searchResult');
+    if (!email) { msg.textContent = '이메일을 입력해주세요.'; return; }
     try {
+      const q = query(collection(db, 'users'), where('email', '==', email), where('type', '==', 'client'));
+      const snap = await getDocs(q);
+      if (snap.empty) {
+        msg.className = 'msg';
+        msg.textContent = '해당 이메일로 가입한 내담자가 없어요.';
+        resultDiv.innerHTML = '';
+        return;
+      }
+      msg.textContent = '';
+      snap.forEach(d => {
+        const data = d.data();
+        resultDiv.innerHTML = `
+          <div style="background:var(--bg2);border-radius:14px;padding:14px;margin-top:10px;">
+            <div style="font-size:14px;font-weight:500;color:var(--brown);">${data.name}</div>
+            <div style="font-size:12px;color:var(--text3);margin-top:3px;">${data.email}</div>
+            <button class="btn-pill" style="margin-top:10px;" onclick="connectClient('${d.id}','${data.name}','${data.email}')">연결하기</button>
+          </div>`;
+      });
+    } catch(e) { msg.textContent = '오류: ' + e.message; }
+  }
+
+  window.connectClient = async function(uid, name, email) {
+    const msg = document.getElementById('clientMsg');
+    try {
+      const existing = query(collection(db, 'clients'), where('counselorId', '==', currentUser.uid), where('clientUid', '==', uid));
+      const snap = await getDocs(existing);
+      if (!snap.empty) {
+        msg.className = 'msg';
+        msg.textContent = '이미 연결된 내담자예요.';
+        return;
+      }
       await addDoc(collection(db, 'clients'), {
-        counselorId: currentUser.uid, name, phone, issue, memo, createdAt: new Date()
+        counselorId: currentUser.uid,
+        clientUid: uid,
+        name, email,
+        createdAt: new Date()
       });
       msg.className = 'msg ok';
-      msg.textContent = '등록 완료!';
-      document.getElementById('clientName').value = '';
-      document.getElementById('clientPhone').value = '';
-      document.getElementById('clientIssue').value = '';
-      document.getElementById('clientMemo').value = '';
+      msg.textContent = name + '님이 연결됐어요! 😊';
+      document.getElementById('searchEmail').value = '';
+      document.getElementById('searchResult').innerHTML = '';
       loadClients();
     } catch(e) { msg.textContent = '오류: ' + e.message; }
   }
@@ -476,7 +506,7 @@
         </div>`;
       sel1.innerHTML += `<option value="${data.name}">${data.name}</option>`;
       sel2.innerHTML += `<option value="${data.name}">${data.name}</option>`;
-      sel3.innerHTML += `<option value="${data.clientUid || d.id}" data-name="${data.name}">${data.name}</option>`;
+      sel3.innerHTML += `<option value="${data.clientUid}" data-name="${data.name}">${data.name}</option>`;
     document.getElementById('totalClients').textContent = count;
   }
 
