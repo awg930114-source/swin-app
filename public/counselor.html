@@ -272,25 +272,25 @@
     </div>
   </div>
 
-<!-- 내담자 관리 -->
-<div class="section" id="clients">
-  <div class="card">
-    <div class="card-title"><span class="card-dot"></span>내담자 연결</div>
-    <div class="field-wrap">
-      <label class="field-label">내담자 이메일로 검색</label>
-      <div style="display:flex; gap:8px;">
-        <input class="field-input" type="email" id="searchEmail" placeholder="내담자 이메일 입력">
-        <button class="btn-pill" onclick="searchClient()">검색</button>
+  <!-- 내담자 관리 -->
+  <div class="section" id="clients">
+    <div class="card">
+      <div class="card-title"><span class="card-dot"></span>내담자 연결</div>
+      <div class="field-wrap">
+        <label class="field-label">내담자 이메일로 검색</label>
+        <div style="display:flex; gap:8px;">
+          <input class="field-input" type="email" id="searchEmail" placeholder="내담자 이메일 입력">
+          <button class="btn-pill" onclick="searchClient()">검색</button>
+        </div>
       </div>
+      <div id="searchResult"></div>
+      <div class="msg" id="clientMsg"></div>
     </div>
-    <div id="searchResult"></div>
-    <div class="msg" id="clientMsg"></div>
+    <div class="card">
+      <div class="card-title"><span class="card-dot"></span>내담자 목록</div>
+      <div id="clientList"><div class="empty">등록된 내담자가 없어요</div></div>
+    </div>
   </div>
-  <div class="card">
-    <div class="card-title"><span class="card-dot"></span>내담자 목록</div>
-    <div id="clientList"><div class="empty">등록된 내담자가 없어요</div></div>
-  </div>
-</div>
 
   <!-- 상담 일지 -->
   <div class="section" id="journal">
