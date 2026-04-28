@@ -452,6 +452,7 @@
         clientId: currentUser.uid,
         message: msg,
         senderType: 'client',
+        read: false,
         createdAt: new Date()
       });
     } catch(e) { console.error(e); }
